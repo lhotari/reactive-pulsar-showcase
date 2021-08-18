@@ -1,9 +1,12 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
+import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageReader;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
 import java.time.Duration;
 import java.util.UUID;
+import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionInitialPosition;
 import org.junit.jupiter.api.Test;
@@ -33,24 +36,31 @@ class IngestControllerIntegrationTests {
         ReactiveMessageConsumer<IngestController.TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(IngestController.TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
-                                .topic("telemetry")
+                                .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
                                 .subscriptionName("testSubscription" + UUID.randomUUID())
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
                         .create();
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
         messageConsumer.consumeMessage()
-                .timeout(Duration.ofMillis(1), Mono.empty())
+                .timeout(Duration.ofSeconds(1), Mono.empty())
                 .block();
 
         webTestClient.post().uri("/telemetry")
                 .contentType(MediaType.APPLICATION_NDJSON)
-                .bodyValue("{\"n\": \"1.23\"}")
+                .bodyValue("{\"n\": \"device1\", \"v\": 1.23}")
                 .exchange()
                 .expectStatus().isOk();
 
-        messageConsumer.consumeMessage()
-                // TODO: this won't work, reported as https://github.com/lhotari/reactive-pulsar/issues/1
-                //.doOnNext(ConsumedMessage::acknowledge)
-                .block(Duration.ofSeconds(10));
+        ReactiveMessageReader<IngestController.TelemetryEntry> reactiveMessageReader =
+                reactivePulsarClient.messageReader(Schema.JSON(IngestController.TelemetryEntry.class))
+                        .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
+                        .create();
+
+        Message<IngestController.TelemetryEntry> telemetryEntryMessage =
+                reactiveMessageReader.readMessage().block(Duration.ofSeconds(5));
+        assertThat(telemetryEntryMessage.getValue()).isEqualTo(IngestController.TelemetryEntry.builder()
+                .n("device1")
+                .v(1.23)
+                .build());
     }
 }
