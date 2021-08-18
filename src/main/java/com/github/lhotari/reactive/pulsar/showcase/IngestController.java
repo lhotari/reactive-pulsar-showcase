@@ -10,6 +10,7 @@ import lombok.Value;
 import org.apache.pulsar.client.api.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -33,7 +34,7 @@ public class IngestController {
     }
 
     @PostMapping("/telemetry")
-    Mono<Void> ingest(Flux<TelemetryEntry> telemetryEntryFlux) {
+    Mono<Void> ingest(@RequestBody Flux<TelemetryEntry> telemetryEntryFlux) {
         return messageSender
                 .sendMessages(telemetryEntryFlux.map(MessageSpec::of))
                 .then();
