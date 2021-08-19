@@ -48,12 +48,12 @@ class IngestControllerIntegrationTests {
 
         webTestClient.post().uri("/telemetry")
                 .contentType(MediaType.APPLICATION_NDJSON)
-                .bodyValue("{\"n\": \"device1\", \"v\": 1.23}")
+                .bodyValue("{\"n\": \"device1\", \"v\": 1.23}\n{\"n\": \"device2\", \"v\": 3.21}")
                 .exchange()
                 .expectStatus().isOk();
 
         messageConsumer
-                .consumeMessage(messageMono -> messageMono.map(
+                .consumeMessages(messageFlux -> messageFlux.map(
                         message -> MessageResult.acknowledge(message.getMessageId(), message)))
                 .as(StepVerifier::create)
                 .expectSubscription()
@@ -62,6 +62,12 @@ class IngestControllerIntegrationTests {
                                 .isEqualTo(IngestController.TelemetryEntry.builder()
                                         .n("device1")
                                         .v(1.23)
+                                        .build()))
+                .assertNext(telemetryEntryMessage ->
+                        assertThat(telemetryEntryMessage.getValue())
+                                .isEqualTo(IngestController.TelemetryEntry.builder()
+                                        .n("device2")
+                                        .v(3.21)
                                         .build()))
                 .thenCancel()
                 .verify(Duration.ofSeconds(5));
