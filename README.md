@@ -1,5 +1,46 @@
 # Reactive Pulsar Client show case application
 
+## Prerequisites
+
+### Cloning reactive-pulsar
+
+Running this application requires cloning https://github.com/lhotari/reactive-pulsar to the parent directory of this project.
+
+```bash
+cd ..
+git clone https://github.com/lhotari/reactive-pulsar
+```
+
+### Pulsar standalone
+
+Starting Pulsar standalone
+```bash
+docker run --name pulsar-standalone -d -p 8080:8080 -p 6650:6650 apachepulsar/pulsar:latest /pulsar/bin/pulsar standalone
+```
+
+Tailing logs
+```bash
+docker logs -f pulsar-standalone
+```
+
+Stopping
+```bash
+docker stop pulsar-standalone
+```
+
+Deleting container
+```bash
+docker rm pulsar-standalone
+```
+
+## Usage
+
+### Running the application
+
+```bash
+./gradlew bootRun
+```
+
 ## Telemetry ingest demonstration
 
 ### Sending 1M telemetry entries with curl, all in one request
