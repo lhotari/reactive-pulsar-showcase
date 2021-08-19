@@ -68,3 +68,11 @@ for i in {1..10000}; do
     | curl -X POST -T - -H "Content-Type: application/x-ndjson" localhost:8081/telemetry
 done
 ```
+
+### Sending 1M telemetry entries with k6
+
+Requires [installing k6](https://k6.io/docs/getting-started/installation/).
+```bash
+cd k6
+k6 run -u 100 -i 1000000 telemetry_ingest.js
+```
