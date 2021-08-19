@@ -1,14 +1,14 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.github.lhotari.reactive.pulsar.adapter.MessageResult;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
-import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageReader;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
 import java.time.Duration;
 import java.util.UUID;
-import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionInitialPosition;
+import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IngestControllerIntegrationTests {
@@ -33,17 +33,18 @@ class IngestControllerIntegrationTests {
 
     @Test
     void shouldIngestTelemetry() {
+        String subscriptionName = "testSubscription" + UUID.randomUUID();
         ReactiveMessageConsumer<IngestController.TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(IngestController.TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
                                 .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
-                                .subscriptionName("testSubscription" + UUID.randomUUID())
+                                .subscriptionType(SubscriptionType.Exclusive)
+                                .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
+                        .acknowledgeAsynchronously(false)
                         .create();
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
-        messageConsumer.consumeMessage()
-                .timeout(Duration.ofSeconds(1), Mono.empty())
-                .block();
+        messageConsumer.consumeNothing().block();
 
         webTestClient.post().uri("/telemetry")
                 .contentType(MediaType.APPLICATION_NDJSON)
@@ -51,16 +52,18 @@ class IngestControllerIntegrationTests {
                 .exchange()
                 .expectStatus().isOk();
 
-        ReactiveMessageReader<IngestController.TelemetryEntry> reactiveMessageReader =
-                reactivePulsarClient.messageReader(Schema.JSON(IngestController.TelemetryEntry.class))
-                        .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
-                        .create();
-
-        Message<IngestController.TelemetryEntry> telemetryEntryMessage =
-                reactiveMessageReader.readMessage().block(Duration.ofSeconds(5));
-        assertThat(telemetryEntryMessage.getValue()).isEqualTo(IngestController.TelemetryEntry.builder()
-                .n("device1")
-                .v(1.23)
-                .build());
+        messageConsumer
+                .consumeMessage(messageMono -> messageMono.map(
+                        message -> MessageResult.acknowledge(message.getMessageId(), message)))
+                .as(StepVerifier::create)
+                .expectSubscription()
+                .assertNext(telemetryEntryMessage ->
+                        assertThat(telemetryEntryMessage.getValue())
+                                .isEqualTo(IngestController.TelemetryEntry.builder()
+                                        .n("device1")
+                                        .v(1.23)
+                                        .build()))
+                .thenCancel()
+                .verify(Duration.ofSeconds(5));
     }
 }
