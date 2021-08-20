@@ -33,6 +33,8 @@ class IngestControllerIntegrationTests {
 
     @Test
     void shouldIngestTelemetry() {
+        // setup
+        // create a subscription to the result topic before executing the operation
         String subscriptionName = "testSubscription" + UUID.randomUUID();
         ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
@@ -46,12 +48,14 @@ class IngestControllerIntegrationTests {
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
         messageConsumer.consumeNothing().block();
 
+        // when
         webTestClient.post().uri("/telemetry")
                 .contentType(MediaType.APPLICATION_NDJSON)
                 .bodyValue("{\"n\": \"device1\", \"v\": 1.23}\n{\"n\": \"device2\", \"v\": 3.21}")
                 .exchange()
                 .expectStatus().isOk();
 
+        // then
         messageConsumer
                 .consumeMessages(messageFlux -> messageFlux.map(
                         message -> MessageResult.acknowledge(message.getMessageId(), message)))
