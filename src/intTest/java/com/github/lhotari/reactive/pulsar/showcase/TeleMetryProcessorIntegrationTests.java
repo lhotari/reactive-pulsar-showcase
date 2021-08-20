@@ -8,6 +8,7 @@ import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
 import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
+import com.github.lhotari.reactive.pulsar.spring.test.SingletonPulsarContainer;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,22 +20,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ContextConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 @SpringBootTest
 @DirtiesContext(classMode = BEFORE_CLASS)
+@ContextConfiguration(initializers = SingletonPulsarContainer.ContextInitializer.class)
 class TeleMetryProcessorIntegrationTests {
-
     public static final int DEVICE_COUNT = 100;
-
-    @DynamicPropertySource
-    static void registerPulsarProperties(DynamicPropertyRegistry registry) {
-        SingletonPulsarContainer.registerPulsarProperties(registry);
-        SingletonPulsarContainer.registerUniqueTestTopicPrefix(registry);
-    }
 
     @Autowired
     ReactivePulsarClient reactivePulsarClient;
@@ -50,7 +44,8 @@ class TeleMetryProcessorIntegrationTests {
         ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
-                                .topic(topicNameResolver.resolveTopicName(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME))
+                                .topic(topicNameResolver.resolveTopicName(
+                                        TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME))
                                 .subscriptionType(SubscriptionType.Exclusive)
                                 .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))

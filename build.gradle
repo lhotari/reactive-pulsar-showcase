@@ -27,7 +27,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.testcontainers:pulsar:1.16.0'
+	testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.0.3-SNAPSHOT'
 }
 
 test {
