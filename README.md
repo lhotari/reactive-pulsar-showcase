@@ -76,3 +76,19 @@ Requires [installing k6](https://k6.io/docs/getting-started/installation/).
 cd k6
 k6 run -u 100 -i 1000000 telemetry_ingest.js
 ```
+
+
+## Telemetry processing demonstration
+
+### Start pulsar-client to consume from telemetry_median
+
+```
+pulsar-client consume -n 0 -s sub telemetry_median
+```
+
+### Sending 1M telemetry entries (1000 devices, 1000 metrics) with curl, all in one request
+
+```bash
+{ for i in {1..1000}; do for j in {1..1000}; do echo '{"n": "device'$i'/sensor1", "v": '$j'.123}'; done; done; } \
+    | curl -X POST -T - -H "Content-Type: application/x-ndjson" localhost:8081/telemetry
+```
