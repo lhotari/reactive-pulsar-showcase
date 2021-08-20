@@ -1,14 +1,9 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,23 +37,11 @@ public class IngestController {
     Mono<Void> ingest(@RequestBody Flux<TelemetryEntry> telemetryEntryFlux) {
         return messageSender
                 .sendMessages(telemetryEntryFlux
-                                .doOnNext(telemetryEntry -> {
-                                    log.info("About to send telemetry entry {}", telemetryEntry);
-                                })
-                                .map(MessageSpec::of))
+                        .doOnNext(telemetryEntry -> {
+                            log.info("About to send telemetry entry {}", telemetryEntry);
+                        })
+                        .map(MessageSpec::of))
                 .then();
     }
 
-    @Value
-    @Builder
-    @JsonDeserialize(builder = TelemetryEntry.TelemetryEntryBuilder.class)
-    @AllArgsConstructor
-    public static class TelemetryEntry {
-        String n;
-        double v;
-
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class TelemetryEntryBuilder {
-        }
-    }
 }

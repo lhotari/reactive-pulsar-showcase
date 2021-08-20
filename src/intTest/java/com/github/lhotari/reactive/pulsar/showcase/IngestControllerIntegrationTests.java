@@ -34,8 +34,8 @@ class IngestControllerIntegrationTests {
     @Test
     void shouldIngestTelemetry() {
         String subscriptionName = "testSubscription" + UUID.randomUUID();
-        ReactiveMessageConsumer<IngestController.TelemetryEntry> messageConsumer =
-                reactivePulsarClient.messageConsumer(Schema.JSON(IngestController.TelemetryEntry.class))
+        ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
+                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
                                 .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
                                 .subscriptionType(SubscriptionType.Exclusive)
@@ -59,13 +59,13 @@ class IngestControllerIntegrationTests {
                 .expectSubscription()
                 .assertNext(telemetryEntryMessage ->
                         assertThat(telemetryEntryMessage.getValue())
-                                .isEqualTo(IngestController.TelemetryEntry.builder()
+                                .isEqualTo(TelemetryEntry.builder()
                                         .n("device1")
                                         .v(1.23)
                                         .build()))
                 .assertNext(telemetryEntryMessage ->
                         assertThat(telemetryEntryMessage.getValue())
-                                .isEqualTo(IngestController.TelemetryEntry.builder()
+                                .isEqualTo(TelemetryEntry.builder()
                                         .n("device2")
                                         .v(3.21)
                                         .build()))
