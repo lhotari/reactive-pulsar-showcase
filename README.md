@@ -92,3 +92,22 @@ pulsar-client consume -n 0 -s sub telemetry_median
 { for i in {1..1000}; do for j in {1..1000}; do echo '{"n": "device'$i'/sensor1", "v": '$j'.123}'; done; done; } \
     | curl -X POST -T - -H "Content-Type: application/x-ndjson" localhost:8081/telemetry
 ```
+
+
+## SSE / Server Sent Events demonstration
+
+SSE/Server Servet Events uses `text/event-stream` which is [defined in the HTML standard](https://html.spec.whatwg.org/#parsing-an-event-stream).
+
+curl with `-N` parameter can be used to demonstrate SSE. 
+The backend support passing last event id in `Last-Event-ID` header or `lastEventId` query parameter. In addition, there is 
+a poll parameter which takes a boolean value expressed with true/1/yes/false/0/no. 
+The `/firehost` path uses the `telemetry_ingest` topic as the source and `/firehost/median` uses `telemetry_median`. 
+
+```bash
+curl -N localhost:8081/firehose
+```
+
+continuing after a specific message id: 
+```bash
+curl -N 'localhost:8081/firehose/median?lastEventId=CLoYEOEHIAAwAQ==&poll=0'
+```
