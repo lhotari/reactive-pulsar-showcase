@@ -1,0 +1,87 @@
+package com.github.lhotari.reactive.pulsar.showcase;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import com.github.lhotari.reactive.pulsar.adapter.MessageResult;
+import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
+import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
+import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
+import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.SubscriptionInitialPosition;
+import org.apache.pulsar.client.api.SubscriptionType;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
+@SpringBootTest
+class TeleMetryProcessorIntegrationTests {
+
+    public static final int DEVICE_COUNT = 100;
+
+    @DynamicPropertySource
+    static void registerPulsarProperties(DynamicPropertyRegistry registry) {
+        SingletonPulsarContainer.registerPulsarProperties(registry);
+    }
+
+    @Autowired
+    ReactivePulsarClient reactivePulsarClient;
+
+    @Test
+    void shouldProcessTelemetry() {
+        // setup
+        // create a subscription to the result topic before executing the operation
+        String subscriptionName = "testSubscription" + UUID.randomUUID();
+        ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
+                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
+                        .consumerConfigurer(consumerBuilder -> consumerBuilder
+                                .topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME)
+                                .subscriptionType(SubscriptionType.Exclusive)
+                                .subscriptionName(subscriptionName)
+                                .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
+                        .acknowledgeAsynchronously(false)
+                        .create();
+        // create the consumer and close it immediately. This is just to create the Pulsar subscription
+        messageConsumer.consumeNothing().block();
+
+        ReactiveMessageSender<TelemetryEntry> messageSender = reactivePulsarClient
+                .messageSender(Schema.JSON(TelemetryEntry.class))
+                .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
+                .create();
+
+        // when
+        // 100 values for 100 devices are sent to the ingest topic
+        messageSender.sendMessages(Flux.range(1, DEVICE_COUNT).flatMap(value -> {
+                    String name = "device" + value + "/sensor1";
+                    return Flux.range(1, 100)
+                            .map(entryCounter -> TelemetryEntry.builder().n(name).v(entryCounter).build());
+                }).map(telemetryEntry -> MessageSpec.builder(telemetryEntry).key(telemetryEntry.getN()).build()))
+                .blockLast();
+
+        // then the TelemetryProcessor should have aggregated a single median value for each sensor in the result topic
+        Set<String> deviceNames = new HashSet<>();
+        messageConsumer
+                .consumeMessages(messageFlux -> messageFlux.map(
+                        message -> MessageResult.acknowledge(message.getMessageId(), message)))
+                .as(StepVerifier::create)
+                .expectSubscription()
+                .thenConsumeWhile(message -> {
+                    assertThat(deviceNames.add(message.getValue().getN()))
+                            .as("there shouldn't be more than 1 message per device")
+                            .isTrue();
+                    assertThat(message.getValue().getV())
+                            .isEqualTo(51.0);
+                    return deviceNames.size() < DEVICE_COUNT;
+                })
+                .expectNoEvent(Duration.ofSeconds(1))
+                .thenCancel()
+                .verify(Duration.ofSeconds(10));
+    }
+}

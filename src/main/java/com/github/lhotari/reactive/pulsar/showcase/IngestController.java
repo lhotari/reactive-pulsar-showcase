@@ -40,7 +40,9 @@ public class IngestController {
                         .doOnNext(telemetryEntry -> {
                             log.info("About to send telemetry entry {}", telemetryEntry);
                         })
-                        .map(MessageSpec::of))
+                        .map(telemetryEntry -> MessageSpec.builder(telemetryEntry)
+                                .key(telemetryEntry.getN())
+                                .build()))
                 .then();
     }
 
