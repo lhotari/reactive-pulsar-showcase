@@ -46,7 +46,7 @@ docker rm pulsar-standalone
 ### Sending 1M telemetry entries with curl, all in one request
 
 ```bash
-{ for i in {1..1000000}; do echo '{"n": "device'$i'", "v": '$i'.123}'; done; } \
+{ for i in {1..1000000}; do echo '{"n": "device'$i'/sensor1", "v": '$i'.123}'; done; } \
     | curl -X POST -T - -H "Content-Type: application/x-ndjson" localhost:8081/telemetry
 ```
 
@@ -56,7 +56,7 @@ Note: this requires gnu xargs (on MacOS: `brew install findutils`, use `gxargs` 
 and gnu parallel (`brew install parallel`/`apt install moreutils`).
 
 ```bash
-{ for i in {1..1000000}; do echo -ne 'curl -s -X POST -d '\''{"n": "device'$i'", "v": '$i'.123}'\'' -H "Content-Type: application/x-ndjson" localhost:8081/telemetry''\0'; done; } \
+{ for i in {1..1000000}; do echo -ne 'curl -s -X POST -d '\''{"n": "device'$i'/sensor1", "v": '$i'.123}'\'' -H "Content-Type: application/x-ndjson" localhost:8081/telemetry''\0'; done; } \
   | xargs -0 -P 2 -n 100 parallel -j 25 --
 ```
 
@@ -64,7 +64,7 @@ and gnu parallel (`brew install parallel`/`apt install moreutils`).
 
 ```bash
 for i in {1..10000}; do
-  echo '{"n": "device'$i'", "v": '$i'.123}' \
+  echo '{"n": "device'$i'/sensor1", "v": '$i'.123}' \
     | curl -X POST -T - -H "Content-Type: application/x-ndjson" localhost:8081/telemetry
 done
 ```
