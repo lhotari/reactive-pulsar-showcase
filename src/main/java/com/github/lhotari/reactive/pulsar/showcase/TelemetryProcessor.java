@@ -9,6 +9,7 @@ import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.Message;
@@ -80,7 +81,7 @@ public class TelemetryProcessor implements SmartLifecycle {
                                 .take(MAX_GROUP_SIZE)
                                 .collectList()
                                 .delayUntil(entriesForWindow -> processTelemetryWindow(group.key(), entriesForWindow))
-                                .flatMapMany(Flux::fromIterable)
+                                .flatMapIterable(Function.identity())
                                 .map(TelemetryProcessor::acknowledgeMessage),
                         MAX_GROUPS_IN_FLIGHT);
     }
