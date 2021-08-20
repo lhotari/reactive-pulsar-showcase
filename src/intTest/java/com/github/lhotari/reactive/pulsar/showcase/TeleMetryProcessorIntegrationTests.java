@@ -1,11 +1,13 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_CLASS;
 import com.github.lhotari.reactive.pulsar.adapter.MessageResult;
 import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,12 +18,14 @@ import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 @SpringBootTest
+@DirtiesContext(classMode = BEFORE_CLASS)
 class TeleMetryProcessorIntegrationTests {
 
     public static final int DEVICE_COUNT = 100;
@@ -29,10 +33,14 @@ class TeleMetryProcessorIntegrationTests {
     @DynamicPropertySource
     static void registerPulsarProperties(DynamicPropertyRegistry registry) {
         SingletonPulsarContainer.registerPulsarProperties(registry);
+        SingletonPulsarContainer.registerUniqueTestTopicPrefix(registry);
     }
 
     @Autowired
     ReactivePulsarClient reactivePulsarClient;
+
+    @Autowired
+    PulsarTopicNameResolver topicNameResolver;
 
     @Test
     void shouldProcessTelemetry() {
@@ -42,7 +50,7 @@ class TeleMetryProcessorIntegrationTests {
         ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
-                                .topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME)
+                                .topic(topicNameResolver.resolveTopicName(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME))
                                 .subscriptionType(SubscriptionType.Exclusive)
                                 .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
@@ -53,7 +61,7 @@ class TeleMetryProcessorIntegrationTests {
 
         ReactiveMessageSender<TelemetryEntry> messageSender = reactivePulsarClient
                 .messageSender(Schema.JSON(TelemetryEntry.class))
-                .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
+                .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .create();
 
         // when

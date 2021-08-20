@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.lhotari.reactive.pulsar.adapter.MessageResult;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageConsumer;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
 import java.util.UUID;
 import org.apache.pulsar.client.api.Schema;
@@ -23,6 +24,7 @@ class IngestControllerIntegrationTests {
     @DynamicPropertySource
     static void registerPulsarProperties(DynamicPropertyRegistry registry) {
         SingletonPulsarContainer.registerPulsarProperties(registry);
+        SingletonPulsarContainer.registerUniqueTestTopicPrefix(registry);
     }
 
     @Autowired
@@ -30,6 +32,10 @@ class IngestControllerIntegrationTests {
 
     @Autowired
     private WebTestClient webTestClient;
+
+    @Autowired
+    PulsarTopicNameResolver topicNameResolver;
+
 
     @Test
     void shouldIngestTelemetry() {
@@ -39,7 +45,7 @@ class IngestControllerIntegrationTests {
         ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
                 reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
-                                .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
+                                .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                                 .subscriptionType(SubscriptionType.Exclusive)
                                 .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))

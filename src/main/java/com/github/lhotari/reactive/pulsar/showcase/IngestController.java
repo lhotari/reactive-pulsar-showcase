@@ -4,6 +4,7 @@ import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,10 @@ public class IngestController {
 
     @Autowired
     public IngestController(ReactivePulsarClient reactivePulsarClient,
-                            ReactiveProducerCache reactiveProducerCache) {
+                            ReactiveProducerCache reactiveProducerCache,
+                            PulsarTopicNameResolver topicNameResolver) {
         this(reactivePulsarClient.messageSender(Schema.JSON(TelemetryEntry.class))
-                .topic(TELEMETRY_INGEST_TOPIC_NAME)
+                .topic(topicNameResolver.resolveTopicName(TELEMETRY_INGEST_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
                 .create());

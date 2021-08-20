@@ -5,6 +5,7 @@ import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,14 +36,17 @@ public class TelemetryProcessor implements SmartLifecycle {
     private final ReactivePulsarClient reactivePulsarClient;
     private final Schema<TelemetryEntry> schema;
     private final AtomicBoolean running = new AtomicBoolean();
+    private final PulsarTopicNameResolver topicNameResolver;
     private Disposable killSwitch;
 
     @Autowired
     public TelemetryProcessor(ReactivePulsarClient reactivePulsarClient,
-                              ReactiveProducerCache reactiveProducerCache) {
+                              ReactiveProducerCache reactiveProducerCache,
+                              PulsarTopicNameResolver topicNameResolver) {
+        this.topicNameResolver = topicNameResolver;
         schema = Schema.JSON(TelemetryEntry.class);
         this.messageSender = reactivePulsarClient.messageSender(schema)
-                .topic(TELEMETRY_MEDIAN_TOPIC_NAME)
+                .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
                 .create();
@@ -114,7 +118,7 @@ public class TelemetryProcessor implements SmartLifecycle {
 
     private void configureConsumer(ConsumerBuilder<TelemetryEntry> consumerBuilder) {
         consumerBuilder
-                .topic(IngestController.TELEMETRY_INGEST_TOPIC_NAME)
+                .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .subscriptionType(SubscriptionType.Key_Shared)
                 .subscriptionName(getClass().getSimpleName())
                 .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest);
