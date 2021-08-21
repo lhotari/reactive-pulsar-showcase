@@ -26,4 +26,6 @@ jobs:
         git clone --depth 1 https://github.com/lhotari/reactive-pulsar
 
     - name: Check with Gradle
-      run: ./gradlew check
+      run: |
+        touch .compositebuild
+        ./gradlew check
