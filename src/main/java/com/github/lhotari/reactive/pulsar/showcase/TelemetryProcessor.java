@@ -88,12 +88,7 @@ public class TelemetryProcessor implements SmartLifecycle {
 
     private Publisher<?> processTelemetryWindow(String n, List<Message<TelemetryEntry>> entriesForWindow) {
         // taking the median entry in the window can help filter out outlier values
-        double median = entriesForWindow.stream()
-                .map(Message::getValue)
-                .mapToDouble(TelemetryEntry::getV)
-                .sorted()
-                .skip(entriesForWindow.size() / 2)
-                .findFirst().getAsDouble();
+        double median = entriesForWindow.get(entriesForWindow.size() / 2).getValue().getV();
         TelemetryEntry medianEntry = TelemetryEntry.builder().n(n).v(median).build();
         return messageSender.sendMessage(Mono.just(MessageSpec
                 .builder(medianEntry)
