@@ -57,7 +57,7 @@ public class EventFireHoseController {
 
         source.ifPresent(s -> {
             if (s.equals("median")) {
-                messageReaderFactoryTemplate.topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME);
+                messageReaderFactory.topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME);
             }
         });
 
