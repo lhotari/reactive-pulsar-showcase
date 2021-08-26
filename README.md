@@ -38,7 +38,13 @@ docker rm pulsar-standalone
 ### Running the application
 
 ```bash
-./gradlew bootRun
+./gradlew :bootRun
+```
+
+### Running the webhook application
+
+```bash
+./gradlew :webhook-target-app:bootRun
 ```
 
 ## Telemetry ingest demonstration
