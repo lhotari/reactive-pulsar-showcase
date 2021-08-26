@@ -8,13 +8,13 @@ import lombok.Value;
 
 @Value
 @Builder
-@JsonDeserialize(builder = TelemetryEntry.TelemetryEntryBuilder.class)
+@JsonDeserialize(builder = TelemetryEvent.TelemetryEventBuilder.class)
 @AllArgsConstructor
-public class TelemetryEntry {
+public class TelemetryEvent {
     String n;
     double v;
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class TelemetryEntryBuilder {
+    public static class TelemetryEventBuilder {
     }
 }

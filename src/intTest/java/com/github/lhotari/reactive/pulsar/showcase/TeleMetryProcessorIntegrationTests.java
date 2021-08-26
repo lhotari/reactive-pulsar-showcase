@@ -41,8 +41,8 @@ class TeleMetryProcessorIntegrationTests {
         // setup
         // create a subscription to the result topic before executing the operation
         String subscriptionName = "testSubscription" + UUID.randomUUID();
-        ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
-                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
+        ReactiveMessageConsumer<TelemetryEvent> messageConsumer =
+                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEvent.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
                                 .topic(topicNameResolver.resolveTopicName(
                                         TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME))
@@ -54,8 +54,8 @@ class TeleMetryProcessorIntegrationTests {
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
         messageConsumer.consumeNothing().block();
 
-        ReactiveMessageSender<TelemetryEntry> messageSender = reactivePulsarClient
-                .messageSender(Schema.JSON(TelemetryEntry.class))
+        ReactiveMessageSender<TelemetryEvent> messageSender = reactivePulsarClient
+                .messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .create();
 
@@ -64,8 +64,8 @@ class TeleMetryProcessorIntegrationTests {
         messageSender.sendMessages(Flux.range(1, DEVICE_COUNT).flatMap(value -> {
                     String name = "device" + value + "/sensor1";
                     return Flux.range(1, 100)
-                            .map(entryCounter -> TelemetryEntry.builder().n(name).v(entryCounter).build());
-                }).map(telemetryEntry -> MessageSpec.builder(telemetryEntry).key(telemetryEntry.getN()).build()))
+                            .map(entryCounter -> TelemetryEvent.builder().n(name).v(entryCounter).build());
+                }).map(telemetryEvent -> MessageSpec.builder(telemetryEvent).key(telemetryEvent.getN()).build()))
                 .blockLast();
 
         // then the TelemetryProcessor should have aggregated a single median value for each sensor in the result topic

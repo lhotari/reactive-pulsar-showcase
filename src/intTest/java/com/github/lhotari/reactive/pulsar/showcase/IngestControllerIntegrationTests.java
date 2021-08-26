@@ -37,8 +37,8 @@ class IngestControllerIntegrationTests {
         // setup
         // create a subscription to the result topic before executing the operation
         String subscriptionName = "testSubscription" + UUID.randomUUID();
-        ReactiveMessageConsumer<TelemetryEntry> messageConsumer =
-                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEntry.class))
+        ReactiveMessageConsumer<TelemetryEvent> messageConsumer =
+                reactivePulsarClient.messageConsumer(Schema.JSON(TelemetryEvent.class))
                         .consumerConfigurer(consumerBuilder -> consumerBuilder
                                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                                 .subscriptionType(SubscriptionType.Exclusive)
@@ -62,15 +62,15 @@ class IngestControllerIntegrationTests {
                         message -> MessageResult.acknowledge(message.getMessageId(), message)))
                 .as(StepVerifier::create)
                 .expectSubscription()
-                .assertNext(telemetryEntryMessage ->
-                        assertThat(telemetryEntryMessage.getValue())
-                                .isEqualTo(TelemetryEntry.builder()
+                .assertNext(telemetryEventMessage ->
+                        assertThat(telemetryEventMessage.getValue())
+                                .isEqualTo(TelemetryEvent.builder()
                                         .n("device1")
                                         .v(1.23)
                                         .build()))
-                .assertNext(telemetryEntryMessage ->
-                        assertThat(telemetryEntryMessage.getValue())
-                                .isEqualTo(TelemetryEntry.builder()
+                .assertNext(telemetryEventMessage ->
+                        assertThat(telemetryEventMessage.getValue())
+                                .isEqualTo(TelemetryEvent.builder()
                                         .n("device2")
                                         .v(3.21)
                                         .build()))

@@ -27,12 +27,12 @@ import reactor.core.publisher.Flux;
 public class EventFireHoseController {
     private static final Duration KEEPALIVE_INTERVAL = Duration.ofSeconds(10);
     private final ReactivePulsarClient reactivePulsarClient;
-    private final ReactiveMessageReaderFactory<TelemetryEntry> messageReaderFactoryTemplate;
+    private final ReactiveMessageReaderFactory<TelemetryEvent> messageReaderFactoryTemplate;
 
     public EventFireHoseController(ReactivePulsarClient reactivePulsarClient,
                                    PulsarTopicNameResolver topicNameResolver) {
         this.reactivePulsarClient = reactivePulsarClient;
-        messageReaderFactoryTemplate = reactivePulsarClient.messageReader(Schema.JSON(TelemetryEntry.class))
+        messageReaderFactoryTemplate = reactivePulsarClient.messageReader(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .startAtSpec(StartAtSpec.ofLatestInclusive())
                 .endOfStreamAction(EndOfStreamAction.POLL);
@@ -41,14 +41,14 @@ public class EventFireHoseController {
 
     @CrossOrigin(allowedHeaders = "*")
     @GetMapping(path = "/firehose/{source}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    Flux<ServerSentEvent<TelemetryEntry>> streamEvents(@RequestHeader(value = "Last-Event-ID", required = false)
+    Flux<ServerSentEvent<TelemetryEvent>> streamEvents(@RequestHeader(value = "Last-Event-ID", required = false)
                                                                Optional<String> lastEventIDHeader,
                                                        @RequestParam(value = "lastEventId", required = false)
                                                                Optional<String> lastEventIDParameter,
                                                        @PathVariable(value = "source", required = false)
                                                                Optional<String> source,
                                                        @RequestParam(value = "poll", defaultValue = "true") boolean pollMore) {
-        ReactiveMessageReaderFactory<TelemetryEntry> messageReaderFactory = messageReaderFactoryTemplate
+        ReactiveMessageReaderFactory<TelemetryEvent> messageReaderFactory = messageReaderFactoryTemplate
                 .clone();
 
         if (!pollMore) {
@@ -79,15 +79,15 @@ public class EventFireHoseController {
         return Flux.merge(messageReaderFactory
                 .create()
                 .readMessages()
-                .map(telemetryEntryMessage -> ServerSentEvent.builder(telemetryEntryMessage.getValue())
+                .map(telemetryEventMessage -> ServerSentEvent.builder(telemetryEventMessage.getValue())
                         .event("telemetry")
                         .id(Base64.getUrlEncoder()
-                                .encodeToString(telemetryEntryMessage.getMessageId().toByteArray()))
+                                .encodeToString(telemetryEventMessage.getMessageId().toByteArray()))
                         .build()), pollMore ? createKeepaliveFlux() : Flux.empty());
     }
 
-    private Flux<ServerSentEvent<TelemetryEntry>> createKeepaliveFlux() {
+    private Flux<ServerSentEvent<TelemetryEvent>> createKeepaliveFlux() {
         return Flux.interval(KEEPALIVE_INTERVAL).map(i ->
-                ServerSentEvent.<TelemetryEntry>builder().comment("").build());
+                ServerSentEvent.<TelemetryEvent>builder().comment("").build());
     }
 }

@@ -18,32 +18,32 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class IngestController {
     public static final String TELEMETRY_INGEST_TOPIC_NAME = "telemetry_ingest";
-    private final ReactiveMessageSender<TelemetryEntry> messageSender;
+    private final ReactiveMessageSender<TelemetryEvent> messageSender;
 
     @Autowired
     public IngestController(ReactivePulsarClient reactivePulsarClient,
                             ReactiveProducerCache reactiveProducerCache,
                             PulsarTopicNameResolver topicNameResolver) {
-        this(reactivePulsarClient.messageSender(Schema.JSON(TelemetryEntry.class))
+        this(reactivePulsarClient.messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_INGEST_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
                 .create());
     }
 
-    IngestController(ReactiveMessageSender<TelemetryEntry> messageSender) {
+    IngestController(ReactiveMessageSender<TelemetryEvent> messageSender) {
         this.messageSender = messageSender;
     }
 
     @PostMapping("/telemetry")
-    Mono<Void> ingest(@RequestBody Flux<TelemetryEntry> telemetryEntryFlux) {
+    Mono<Void> ingest(@RequestBody Flux<TelemetryEvent> telemetryEventFlux) {
         return messageSender
-                .sendMessages(telemetryEntryFlux
-                        .doOnNext(telemetryEntry -> {
-                            log.info("About to send telemetry entry {}", telemetryEntry);
+                .sendMessages(telemetryEventFlux
+                        .doOnNext(telemetryEvent -> {
+                            log.info("About to send telemetry entry {}", telemetryEvent);
                         })
-                        .map(telemetryEntry -> MessageSpec.builder(telemetryEntry)
-                                .key(telemetryEntry.getN())
+                        .map(telemetryEvent -> MessageSpec.builder(telemetryEvent)
+                                .key(telemetryEvent.getN())
                                 .build()))
                 .then();
     }

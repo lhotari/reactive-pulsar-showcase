@@ -32,9 +32,9 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
     private static final int MAX_GROUPS_IN_FLIGHT = 1000;
     private static final int MAX_GROUP_SIZE = 1000;
     private static final Duration GROUP_WINDOW_DURATION = Duration.ofSeconds(5);
-    private final ReactiveMessageSender<TelemetryEntry> messageSender;
+    private final ReactiveMessageSender<TelemetryEvent> messageSender;
     private final ReactivePulsarClient reactivePulsarClient;
-    private final Schema<TelemetryEntry> schema;
+    private final Schema<TelemetryEvent> schema;
     private final PulsarTopicNameResolver topicNameResolver;
 
     @Autowired
@@ -42,7 +42,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                               ReactiveProducerCache reactiveProducerCache,
                               PulsarTopicNameResolver topicNameResolver) {
         this.topicNameResolver = topicNameResolver;
-        schema = Schema.JSON(TelemetryEntry.class);
+        schema = Schema.JSON(TelemetryEvent.class);
         this.messageSender = reactivePulsarClient.messageSender(schema)
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
@@ -64,7 +64,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .build();
     }
 
-    private void configureConsumer(ConsumerBuilder<TelemetryEntry> consumerBuilder) {
+    private void configureConsumer(ConsumerBuilder<TelemetryEvent> consumerBuilder) {
         consumerBuilder
                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .subscriptionType(SubscriptionType.Key_Shared)
@@ -72,9 +72,9 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest);
     }
 
-    private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEntry>> messageFlux) {
+    private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEvent>> messageFlux) {
         return messageFlux
-                .groupBy(telemetryEntryMessage -> telemetryEntryMessage.getValue().getN())
+                .groupBy(telemetryEventMessage -> telemetryEventMessage.getValue().getN())
                 .flatMap(group -> group
                                 .publishOn(Schedulers.parallel())
                                 .take(GROUP_WINDOW_DURATION)
@@ -86,17 +86,17 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                         MAX_GROUPS_IN_FLIGHT);
     }
 
-    private Publisher<?> processTelemetryWindow(String n, List<Message<TelemetryEntry>> entriesForWindow) {
+    private Publisher<?> processTelemetryWindow(String n, List<Message<TelemetryEvent>> entriesForWindow) {
         // taking the median entry in the window can help filter out outlier values
         double median = entriesForWindow.get(entriesForWindow.size() / 2).getValue().getV();
-        TelemetryEntry medianEntry = TelemetryEntry.builder().n(n).v(median).build();
+        TelemetryEvent medianEntry = TelemetryEvent.builder().n(n).v(median).build();
         return messageSender.sendMessage(Mono.just(MessageSpec
                 .builder(medianEntry)
                 .key(medianEntry.getN())
                 .build()));
     }
 
-    private static MessageResult<Void> acknowledgeMessage(Message<TelemetryEntry> telemetryEntryMessage) {
-        return MessageResult.acknowledge(telemetryEntryMessage.getMessageId());
+    private static MessageResult<Void> acknowledgeMessage(Message<TelemetryEvent> telemetryEventMessage) {
+        return MessageResult.acknowledge(telemetryEventMessage.getMessageId());
     }
 }
