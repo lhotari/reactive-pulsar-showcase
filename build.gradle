@@ -18,6 +18,13 @@ repositories {
 	mavenCentral()
 }
 
+sourceSets {
+    intTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.0.4'
@@ -26,19 +33,18 @@ dependencies {
 	implementation 'org.apache.pulsar:pulsar-client-admin:2.8.0'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	intTestAnnotationProcessor 'org.projectlombok:lombok'
+	intTestCompileOnly 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:3.0.3'
+	testImplementation 'org.awaitility:awaitility'
 }
 
 test {
 	useJUnitPlatform()
-}
-
-sourceSets {
-	intTest {
-		compileClasspath += sourceSets.main.output
-		runtimeClasspath += sourceSets.main.output
-	}
 }
 
 configurations {
