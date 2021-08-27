@@ -84,14 +84,23 @@ public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
 
     private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEvent>> messageFlux) {
         return messageFlux
-                .delayUntil(telemetryEventMessage -> {
-                    if (hasLastSentStateChanged(telemetryEventMessage)) {
-                        return sendStateToWebhook(telemetryEventMessage);
-                    } else {
-                        return Mono.empty();
-                    }
-                })
-                .map(AlarmProcessor::acknowledgeMessage);
+                .flatMap(telemetryEventMessage -> processMessage(telemetryEventMessage)
+                        .thenReturn(MessageResult.acknowledge(telemetryEventMessage.getMessageId()))
+                        .onErrorResume(throwable -> {
+                            log.error("Error processing message, redeliveryCount {}",
+                                    telemetryEventMessage.getRedeliveryCount(),
+                                    throwable);
+                            return Mono.just(MessageResult
+                                    .negativeAcknowledge(telemetryEventMessage.getMessageId()));
+                        }));
+    }
+
+    private Mono<Void> processMessage(Message<TelemetryEvent> telemetryEventMessage) {
+        if (hasLastSentStateChanged(telemetryEventMessage)) {
+            return sendStateToWebhook(telemetryEventMessage);
+        } else {
+            return Mono.empty();
+        }
     }
 
     private Mono<Void> sendStateToWebhook(Message<TelemetryEvent> telemetryEventMessage) {
@@ -121,7 +130,4 @@ public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
         });
     }
 
-    private static MessageResult<Void> acknowledgeMessage(Message<TelemetryEvent> telemetryEventMessage) {
-        return MessageResult.acknowledge(telemetryEventMessage.getMessageId());
-    }
 }
