@@ -47,7 +47,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
-                .create();
+                .build();
         this.reactivePulsarClient = reactivePulsarClient;
     }
 
@@ -59,7 +59,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .builder(reactivePulsarClient
                         .messageConsumer(schema)
                         .consumerConfigurer(this::configureConsumer)
-                        .create())
+                        .build())
                 .streamingMessageHandler(this::consumeMessages)
                 .build();
     }

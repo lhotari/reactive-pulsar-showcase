@@ -50,14 +50,14 @@ class TeleMetryProcessorIntegrationTests {
                                 .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
                         .acknowledgeAsynchronously(false)
-                        .create();
+                        .build();
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
         messageConsumer.consumeNothing().block();
 
         ReactiveMessageSender<TelemetryEvent> messageSender = reactivePulsarClient
                 .messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
-                .create();
+                .build();
 
         // when
         // 100 values for 100 devices are sent to the ingest topic

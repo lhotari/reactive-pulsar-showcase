@@ -28,7 +28,7 @@ public class IngestController {
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_INGEST_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
-                .create());
+                .build());
     }
 
     IngestController(ReactiveMessageSender<TelemetryEvent> messageSender) {

@@ -45,7 +45,7 @@ class IngestControllerIntegrationTests {
                                 .subscriptionName(subscriptionName)
                                 .subscriptionInitialPosition(SubscriptionInitialPosition.Latest))
                         .acknowledgeAsynchronously(false)
-                        .create();
+                        .build();
         // create the consumer and close it immediately. This is just to create the Pulsar subscription
         messageConsumer.consumeNothing().block();
 

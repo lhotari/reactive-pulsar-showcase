@@ -1,7 +1,7 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
 import com.github.lhotari.reactive.pulsar.adapter.EndOfStreamAction;
-import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageReaderFactory;
+import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageReaderBuilder;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
 import com.github.lhotari.reactive.pulsar.adapter.StartAtSpec;
 import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
@@ -27,12 +27,12 @@ import reactor.core.publisher.Flux;
 public class EventFireHoseController {
     private static final Duration KEEPALIVE_INTERVAL = Duration.ofSeconds(10);
     private final ReactivePulsarClient reactivePulsarClient;
-    private final ReactiveMessageReaderFactory<TelemetryEvent> messageReaderFactoryTemplate;
+    private final ReactiveMessageReaderBuilder<TelemetryEvent> messageReaderBuilderTemplate;
 
     public EventFireHoseController(ReactivePulsarClient reactivePulsarClient,
                                    PulsarTopicNameResolver topicNameResolver) {
         this.reactivePulsarClient = reactivePulsarClient;
-        messageReaderFactoryTemplate = reactivePulsarClient.messageReader(Schema.JSON(TelemetryEvent.class))
+        messageReaderBuilderTemplate = reactivePulsarClient.messageReader(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
                 .startAtSpec(StartAtSpec.ofLatestInclusive())
                 .endOfStreamAction(EndOfStreamAction.POLL);
@@ -48,16 +48,16 @@ public class EventFireHoseController {
                                                        @PathVariable(value = "source", required = false)
                                                                Optional<String> source,
                                                        @RequestParam(value = "poll", defaultValue = "true") boolean pollMore) {
-        ReactiveMessageReaderFactory<TelemetryEvent> messageReaderFactory = messageReaderFactoryTemplate
+        ReactiveMessageReaderBuilder<TelemetryEvent> messageReaderBuilder = messageReaderBuilderTemplate
                 .clone();
 
         if (!pollMore) {
-            messageReaderFactory.endOfStreamAction(EndOfStreamAction.COMPLETE);
+            messageReaderBuilder.endOfStreamAction(EndOfStreamAction.COMPLETE);
         }
 
         source.ifPresent(s -> {
             if (s.equals("median")) {
-                messageReaderFactory.topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME);
+                messageReaderBuilder.topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME);
             }
         });
 
@@ -70,14 +70,14 @@ public class EventFireHoseController {
                 MessageId lastMessageId =
                         MessageId.fromByteArray(
                                 Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8)));
-                messageReaderFactory.startAtSpec(StartAtSpec.ofMessageId(lastMessageId, false));
+                messageReaderBuilder.startAtSpec(StartAtSpec.ofMessageId(lastMessageId, false));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         });
 
-        return Flux.merge(messageReaderFactory
-                .create()
+        return Flux.merge(messageReaderBuilder
+                .build()
                 .readMessages()
                 .map(telemetryEventMessage -> ServerSentEvent.builder(telemetryEventMessage.getValue())
                         .event("telemetry")

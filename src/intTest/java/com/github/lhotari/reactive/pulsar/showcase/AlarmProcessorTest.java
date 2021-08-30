@@ -138,7 +138,7 @@ class AlarmProcessorTest {
         ReactiveMessageSender<TelemetryEvent> messageSender = reactivePulsarClient
                 .messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME))
-                .create();
+                .build();
 
         // when telemetry events are sent
         messageSender.sendMessages(Flux.just(1.0d, 2.0d, 81.0d, 120.0d, 66.0d, 75.0d, 73.0d, 82.0d)

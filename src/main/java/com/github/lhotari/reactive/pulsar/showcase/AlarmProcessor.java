@@ -64,7 +64,7 @@ public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
                 .builder(reactivePulsarClient
                         .messageConsumer(schema)
                         .consumerConfigurer(this::configureConsumer)
-                        .create())
+                        .build())
                 .streamingMessageHandler(this::consumeMessages)
                 .build();
     }
