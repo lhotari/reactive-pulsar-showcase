@@ -70,13 +70,13 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
             .flatMap(
                 group ->
                     group
-                        .publishOn(Schedulers.parallel())
                         .take(GROUP_WINDOW_DURATION)
                         .take(MAX_GROUP_SIZE)
                         .collectList()
                         .delayUntil(entriesForWindow -> processTelemetryWindow(group.key(), entriesForWindow))
                         .flatMapIterable(Function.identity())
-                        .map(TelemetryProcessor::acknowledgeMessage),
+                        .map(TelemetryProcessor::acknowledgeMessage)
+                        .subscribeOn(Schedulers.parallel()),
                 MAX_GROUPS_IN_FLIGHT
             );
     }
