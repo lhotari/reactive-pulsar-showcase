@@ -79,7 +79,7 @@ public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
     }
 
     private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEvent>> messageFlux) {
-        return messageFlux.flatMap(telemetryEventMessage ->
+        return messageFlux.concatMap(telemetryEventMessage ->
             processMessage(telemetryEventMessage)
                 .thenReturn(MessageResult.acknowledge(telemetryEventMessage.getMessageId()))
                 .onErrorResume(throwable -> {
