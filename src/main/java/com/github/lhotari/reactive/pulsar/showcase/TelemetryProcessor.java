@@ -1,6 +1,7 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
 import com.github.lhotari.reactive.pulsar.adapter.*;
+import com.github.lhotari.reactive.pulsar.resourceadapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.spring.AbstractReactiveMessageListenerContainer;
 import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;

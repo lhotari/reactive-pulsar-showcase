@@ -2,8 +2,8 @@ package com.github.lhotari.reactive.pulsar.showcase;
 
 import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
-import com.github.lhotari.reactive.pulsar.adapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.resourceadapter.ReactiveProducerCache;
 import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Schema;
