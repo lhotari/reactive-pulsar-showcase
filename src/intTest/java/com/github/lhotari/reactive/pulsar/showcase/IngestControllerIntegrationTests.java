@@ -64,9 +64,7 @@ class IngestControllerIntegrationTests {
 
         // then
         messageConsumer
-            .consumeMessages(messageFlux ->
-                messageFlux.map(message -> MessageResult.acknowledge(message.getMessageId(), message))
-            )
+            .consumeMessages(messageFlux -> messageFlux.map(MessageResult::acknowledgeAndReturn))
             .as(StepVerifier::create)
             .expectSubscription()
             .assertNext(telemetryEventMessage ->

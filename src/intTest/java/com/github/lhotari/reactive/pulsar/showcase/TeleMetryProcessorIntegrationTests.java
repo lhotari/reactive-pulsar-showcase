@@ -77,9 +77,7 @@ class TeleMetryProcessorIntegrationTests {
         // then the TelemetryProcessor should have aggregated a single median value for each sensor in the result topic
         Set<String> deviceNames = new HashSet<>();
         messageConsumer
-            .consumeMessages(messageFlux ->
-                messageFlux.map(message -> MessageResult.acknowledge(message.getMessageId(), message))
-            )
+            .consumeMessages(messageFlux -> messageFlux.map(MessageResult::acknowledgeAndReturn))
             .as(StepVerifier::create)
             .expectSubscription()
             .thenConsumeWhile(message -> {
