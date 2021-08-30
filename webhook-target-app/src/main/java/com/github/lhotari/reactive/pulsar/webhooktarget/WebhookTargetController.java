@@ -13,8 +13,10 @@ public class WebhookTargetController {
 
     @PostMapping("/webhook")
     Mono<Void> handleWebhook(@RequestBody Mono<String> bodyMono, ServerHttpRequest request) {
-        return bodyMono.doOnNext(body -> {
-            log.info("Received webhook call with content '{}'", body);
-        }).then();
+        return bodyMono
+            .doOnNext(body -> {
+                log.info("Received webhook call with content '{}'", body);
+            })
+            .then();
     }
 }

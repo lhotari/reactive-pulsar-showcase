@@ -17,18 +17,24 @@ import reactor.core.publisher.Mono;
 @RestController
 @Slf4j
 public class IngestController {
+
     public static final String TELEMETRY_INGEST_TOPIC_NAME = "telemetry_ingest";
     private final ReactiveMessageSender<TelemetryEvent> messageSender;
 
     @Autowired
-    public IngestController(ReactivePulsarClient reactivePulsarClient,
-                            ReactiveProducerCache reactiveProducerCache,
-                            PulsarTopicNameResolver topicNameResolver) {
-        this(reactivePulsarClient.messageSender(Schema.JSON(TelemetryEvent.class))
+    public IngestController(
+        ReactivePulsarClient reactivePulsarClient,
+        ReactiveProducerCache reactiveProducerCache,
+        PulsarTopicNameResolver topicNameResolver
+    ) {
+        this(
+            reactivePulsarClient
+                .messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_INGEST_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
-                .build());
+                .build()
+        );
     }
 
     IngestController(ReactiveMessageSender<TelemetryEvent> messageSender) {
@@ -38,14 +44,13 @@ public class IngestController {
     @PostMapping("/telemetry")
     Mono<Void> ingest(@RequestBody Flux<TelemetryEvent> telemetryEventFlux) {
         return messageSender
-                .sendMessages(telemetryEventFlux
-                        .doOnNext(telemetryEvent -> {
-                            log.info("About to send telemetry entry {}", telemetryEvent);
-                        })
-                        .map(telemetryEvent -> MessageSpec.builder(telemetryEvent)
-                                .key(telemetryEvent.getN())
-                                .build()))
-                .then();
+            .sendMessages(
+                telemetryEventFlux
+                    .doOnNext(telemetryEvent -> {
+                        log.info("About to send telemetry entry {}", telemetryEvent);
+                    })
+                    .map(telemetryEvent -> MessageSpec.builder(telemetryEvent).key(telemetryEvent.getN()).build())
+            )
+            .then();
     }
-
 }

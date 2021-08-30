@@ -11,10 +11,10 @@ import lombok.Value;
 @JsonDeserialize(builder = TelemetryEvent.TelemetryEventBuilder.class)
 @AllArgsConstructor
 public class TelemetryEvent {
+
     String n;
     double v;
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class TelemetryEventBuilder {
-    }
+    public static class TelemetryEventBuilder {}
 }
