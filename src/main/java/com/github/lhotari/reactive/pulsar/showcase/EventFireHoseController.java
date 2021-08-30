@@ -22,14 +22,14 @@ import reactor.core.publisher.Flux;
 public class EventFireHoseController {
 
     private static final Duration KEEPALIVE_INTERVAL = Duration.ofSeconds(10);
-    private final ReactivePulsarClient reactivePulsarClient;
     private final ReactiveMessageReaderBuilder<TelemetryEvent> messageReaderBuilderTemplate;
+    private final PulsarTopicNameResolver topicNameResolver;
 
     public EventFireHoseController(
         ReactivePulsarClient reactivePulsarClient,
         PulsarTopicNameResolver topicNameResolver
     ) {
-        this.reactivePulsarClient = reactivePulsarClient;
+        this.topicNameResolver = topicNameResolver;
         messageReaderBuilderTemplate =
             reactivePulsarClient
                 .messageReader(Schema.JSON(TelemetryEvent.class))
@@ -54,7 +54,9 @@ public class EventFireHoseController {
 
         source.ifPresent(s -> {
             if (s.equals("median")) {
-                messageReaderBuilder.topic(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME);
+                messageReaderBuilder.topic(
+                    topicNameResolver.resolveTopicName(TelemetryProcessor.TELEMETRY_MEDIAN_TOPIC_NAME)
+                );
             }
         });
 
