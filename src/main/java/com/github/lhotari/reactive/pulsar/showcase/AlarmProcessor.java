@@ -4,6 +4,7 @@ import com.github.lhotari.reactive.pulsar.adapter.MessageResult;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageHandler;
 import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageHandlerBuilder;
 import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
+import com.github.lhotari.reactive.pulsar.internal.adapter.InKeyOrderMessageProcessors;
 import com.github.lhotari.reactive.pulsar.spring.AbstractReactiveMessageListenerContainer;
 import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
 
 @Component
@@ -24,6 +26,7 @@ import reactor.util.retry.Retry;
 public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
 
     public static final String ALARMPROCESSOR_DLQ_TOPIC_NAME = "alarmprocessor.dlq";
+    public static final int MAX_CONCURRENCY = 32;
     private final ReactivePulsarClient reactivePulsarClient;
     private final Schema<TelemetryEvent> schema;
     private final PulsarTopicNameResolver topicNameResolver;
@@ -79,17 +82,21 @@ public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
     }
 
     private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEvent>> messageFlux) {
-        return messageFlux.concatMap(telemetryEventMessage ->
-            processMessage(telemetryEventMessage)
-                .thenReturn(MessageResult.acknowledge(telemetryEventMessage.getMessageId()))
-                .onErrorResume(throwable -> {
-                    log.error(
-                        "Error processing message, redeliveryCount {}",
-                        telemetryEventMessage.getRedeliveryCount(),
-                        throwable
-                    );
-                    return Mono.just(MessageResult.negativeAcknowledge(telemetryEventMessage.getMessageId()));
-                })
+        return InKeyOrderMessageProcessors.processInKeyOrderConcurrently(
+            messageFlux,
+            telemetryEventMessage ->
+                processMessage(telemetryEventMessage)
+                    .thenReturn(MessageResult.acknowledge(telemetryEventMessage.getMessageId()))
+                    .onErrorResume(throwable -> {
+                        log.error(
+                            "Error processing message, redeliveryCount {}",
+                            telemetryEventMessage.getRedeliveryCount(),
+                            throwable
+                        );
+                        return Mono.just(MessageResult.negativeAcknowledge(telemetryEventMessage.getMessageId()));
+                    }),
+            Schedulers.parallel(),
+            MAX_CONCURRENCY
         );
     }
 
