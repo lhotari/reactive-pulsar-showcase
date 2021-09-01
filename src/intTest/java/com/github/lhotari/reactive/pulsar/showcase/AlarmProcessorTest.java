@@ -152,7 +152,7 @@ class AlarmProcessorTest {
                 Flux
                     .just(1.0d, 2.0d, 81.0d, 120.0d, 66.0d, 75.0d, 73.0d, 82.0d)
                     .map(value -> new TelemetryEvent("device1/sensor1", value))
-                    .map(MessageSpec::of)
+                    .map(telemetryEvent -> MessageSpec.builder(telemetryEvent).key(telemetryEvent.getN()).build())
             )
             .blockLast();
 
