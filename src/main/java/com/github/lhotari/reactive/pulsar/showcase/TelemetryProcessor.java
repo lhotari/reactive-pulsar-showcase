@@ -66,7 +66,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
 
     private Flux<MessageResult<Void>> consumeMessages(Flux<Message<TelemetryEvent>> messageFlux) {
         return messageFlux
-            .groupBy(telemetryEventMessage -> telemetryEventMessage.getValue().getN())
+            .groupBy(telemetryEventMessage -> telemetryEventMessage.getValue().getN(), MAX_GROUPS_IN_FLIGHT)
             .flatMap(
                 group ->
                     group
