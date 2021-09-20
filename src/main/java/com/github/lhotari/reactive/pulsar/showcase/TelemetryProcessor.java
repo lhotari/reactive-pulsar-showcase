@@ -21,9 +21,9 @@ import reactor.core.scheduler.Schedulers;
 public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer {
 
     public static final String TELEMETRY_MEDIAN_TOPIC_NAME = "telemetry_median";
-    private static final int MAX_GROUPS_IN_FLIGHT = 1000;
+    private static final int MAX_GROUPS_IN_FLIGHT = 5000;
     private static final int MAX_GROUP_SIZE = 1000;
-    private static final Duration GROUP_WINDOW_DURATION = Duration.ofSeconds(5);
+    private static final Duration GROUP_WINDOW_DURATION = Duration.ofSeconds(2);
     private final ReactiveMessageSender<TelemetryEvent> messageSender;
     private final ReactivePulsarClient reactivePulsarClient;
     private final Schema<TelemetryEvent> schema;
@@ -43,6 +43,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
                 .cache(reactiveProducerCache)
+                .maxConcurrentSenderSubscriptions(10000)
                 .build();
         this.reactivePulsarClient = reactivePulsarClient;
     }
