@@ -1,7 +1,8 @@
 plugins {
-	id 'org.springframework.boot' version '2.5.3'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
+    id 'org.springframework.boot' version '2.5.3'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'project-report'
 }
 
 group = 'com.github.lhotari'
@@ -9,13 +10,13 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 sourceSets {
@@ -26,40 +27,49 @@ sourceSets {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.0.8'
-	testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.0.8'
-	implementation 'org.apache.pulsar:pulsar-client:2.8.1'
-	implementation 'org.apache.pulsar:pulsar-client-admin:2.8.1'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testCompileOnly 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	intTestAnnotationProcessor 'org.projectlombok:lombok'
-	intTestCompileOnly 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:3.0.3'
-	testImplementation 'org.awaitility:awaitility'
-}
-
-test {
-	useJUnitPlatform()
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.0.8'
+    testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.0.8'
+    implementation 'org.apache.pulsar:pulsar-client:2.8.1'
+    implementation 'org.apache.pulsar:pulsar-client-admin:2.8.1'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    intTestAnnotationProcessor 'org.projectlombok:lombok'
+    intTestCompileOnly 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:3.0.3'
+    testImplementation 'org.awaitility:awaitility'
 }
 
 configurations {
-	intTestImplementation.extendsFrom testImplementation
-	intTestRuntimeOnly.extendsFrom testRuntimeOnly
+    all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.8.1')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.8.1')
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    intTestImplementation.extendsFrom testImplementation
+    intTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.register('integrationTest', Test) {
-	description = 'Runs integration tests.'
-	group = 'verification'
+    description = 'Runs integration tests.'
+    group = 'verification'
 
-	testClassesDirs = sourceSets.intTest.output.classesDirs
-	classpath = sourceSets.intTest.runtimeClasspath
-	shouldRunAfter test
-	useJUnitPlatform()
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+    shouldRunAfter test
+    useJUnitPlatform()
 }
 
 check.dependsOn integrationTest
