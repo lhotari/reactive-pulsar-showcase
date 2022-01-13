@@ -30,8 +30,8 @@ sourceSets {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.1.0'
-    testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.1.0'
+    implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.2.0'
+    testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.2.0'
     implementation 'org.apache.pulsar:pulsar-client:2.8.2'
     implementation 'org.apache.pulsar:pulsar-client-admin:2.8.2'
     compileOnly 'org.projectlombok:lombok'
