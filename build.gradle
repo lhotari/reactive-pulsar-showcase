@@ -1,8 +1,9 @@
 plugins {
-    id 'org.springframework.boot' version '2.5.3'
+    id 'org.springframework.boot' version '2.6.2'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
     id 'project-report'
+    id "com.github.ben-manes.versions" version "0.41.0"
 }
 
 group = 'com.github.lhotari'
@@ -31,8 +32,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.1.0'
     testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.1.0'
-    implementation 'org.apache.pulsar:pulsar-client:2.8.1'
-    implementation 'org.apache.pulsar:pulsar-client-admin:2.8.1'
+    implementation 'org.apache.pulsar:pulsar-client:2.8.2'
+    implementation 'org.apache.pulsar:pulsar-client-admin:2.8.2'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
@@ -41,7 +42,7 @@ dependencies {
     intTestCompileOnly 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:3.0.3'
+    testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:3.1.0'
     testImplementation 'org.awaitility:awaitility'
 }
 
@@ -55,8 +56,8 @@ configurations {
 configurations {
     all {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.8.1')
-            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.8.1')
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.8.2')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.8.2')
         }
     }
 }
