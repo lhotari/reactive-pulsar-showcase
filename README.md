@@ -110,7 +110,10 @@ a poll parameter which takes a boolean value expressed with true/1/yes/false/0/n
 The `/firehost` path uses the `telemetry_ingest` topic as the source and `/firehost/median` uses `telemetry_median`. 
 
 ```bash
-curl -N localhost:8081/firehose
+# use telemetry_ingest topic
+curl -N localhost:8081/firehose/ingest
+# use telemetry_median topic
+curl -N localhost:8081/firehose/median
 ```
 
 continuing after a specific message id: 
