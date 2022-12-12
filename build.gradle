@@ -30,10 +30,10 @@ sourceSets {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.2.0'
-    testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.2.0'
-    implementation 'org.apache.pulsar:pulsar-client:2.8.2'
-    implementation 'org.apache.pulsar:pulsar-client-admin:2.8.2'
+    implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.2.1'
+    testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.2.1'
+    implementation 'org.apache.pulsar:pulsar-client:2.10.2'
+    implementation 'org.apache.pulsar:pulsar-client-admin:2.10.2'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
@@ -56,8 +56,8 @@ configurations {
 configurations {
     all {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.8.2')
-            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.8.2')
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.10.2')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.10.2')
         }
     }
 }
