@@ -37,7 +37,7 @@ public class TelemetryProcessor extends AbstractReactiveMessagePipelineContainer
     @Autowired
     public TelemetryProcessor(
         ReactivePulsarClient reactivePulsarClient,
-        ReactiveMessageSenderCache ReactiveMessageSenderCache,
+        ReactiveMessageSenderCache reactiveMessageSenderCache,
         PulsarTopicNameResolver topicNameResolver
     ) {
         this.topicNameResolver = topicNameResolver;
@@ -47,7 +47,7 @@ public class TelemetryProcessor extends AbstractReactiveMessagePipelineContainer
                 .messageSender(schema)
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
-                .cache(ReactiveMessageSenderCache)
+                .cache(reactiveMessageSenderCache)
                 .maxConcurrentSenderSubscriptions(10000)
                 .build();
         this.reactivePulsarClient = reactivePulsarClient;

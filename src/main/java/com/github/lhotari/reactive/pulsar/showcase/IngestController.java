@@ -23,7 +23,7 @@ public class IngestController {
     @Autowired
     public IngestController(
         ReactivePulsarClient reactivePulsarClient,
-        ReactiveMessageSenderCache ReactiveMessageSenderCache,
+        ReactiveMessageSenderCache reactiveMessageSenderCache,
         PulsarTopicNameResolver topicNameResolver
     ) {
         this(
@@ -31,7 +31,7 @@ public class IngestController {
                 .messageSender(Schema.JSON(TelemetryEvent.class))
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_INGEST_TOPIC_NAME))
                 .maxInflight(100)
-                .cache(ReactiveMessageSenderCache)
+                .cache(reactiveMessageSenderCache)
                 .build()
         );
     }
