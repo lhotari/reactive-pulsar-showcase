@@ -1,21 +1,14 @@
 # Reactive Pulsar Client show case application
 
+This application was originally written as a demonstration of [Reactive Pulsar](https://github.com/datastax/reactive-pulsar) which predates [Pulsar Reactive Client](https://github.com/apache/pulsar-client-reactive_) and [Spring for Apache Pulsar](https://github.com/spring-projects/spring-pulsar). It has been updated in 12/2023 to use the latest versions of Pulsar Reactive Client and Spring for Apache Pulsar. This code base uses Pulsar Reactive Client directly, without the special annotation support Spring for Apache Pulsar. 
+
 ## Prerequisites
-
-### Cloning reactive-pulsar
-
-Running this application requires cloning https://github.com/lhotari/reactive-pulsar to the parent directory of this project.
-
-```bash
-cd ..
-git clone https://github.com/lhotari/reactive-pulsar
-```
 
 ### Pulsar standalone
 
 Starting Pulsar standalone
 ```bash
-docker run --name pulsar-standalone -d -p 8080:8080 -p 6650:6650 apachepulsar/pulsar:latest /pulsar/bin/pulsar standalone
+docker run --name pulsar-standalone -d -p 8080:8080 -p 6650:6650 apachepulsar/pulsar:3.1.1 /pulsar/bin/pulsar standalone -nss -nfw
 ```
 
 Tailing logs
@@ -116,7 +109,12 @@ curl -N localhost:8081/firehose/ingest
 curl -N localhost:8081/firehose/median
 ```
 
-continuing after a specific message id: 
+To demonstrate this, use one of the previous commands to send 1M telemetry entries with curl while the SSE curl command is running.
+
+The SSE firehost example supports the `lastEventId` query parameter to continue from a specific message id. An application can use this for resuming message processing after a specific message id. 
+
+The `poll` query parameter can be used to control whether the SSE connection should be kept open or closed after the last message has been sent. The default value for `poll` is `1` which means that the connection will be kept open. Setting `poll` to `0` will close the connection after the currently last message has been sent from the server to the client.
+ 
 ```bash
 curl -N 'localhost:8081/firehose/median?lastEventId=CLoYEOEHIAAwAQ==&poll=0'
 ```

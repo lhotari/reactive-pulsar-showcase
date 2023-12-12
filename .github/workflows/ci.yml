@@ -1,10 +1,13 @@
-name: CI build
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -12,20 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
       with:
-        java-version: '11'
-        distribution: 'adopt'
-
-    - name: Clone reactive-pulsar which is required by the composite-build
-      run: |
-        cd ..
-        git clone --depth 1 https://github.com/lhotari/reactive-pulsar
-
-    - name: Check with Gradle
-      run: |
-        touch .compositebuild
-        ./gradlew check
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Build with Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: 8.5
+        arguments: build

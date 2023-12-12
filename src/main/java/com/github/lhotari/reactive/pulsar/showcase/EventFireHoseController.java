@@ -1,10 +1,5 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
-import com.github.lhotari.reactive.pulsar.adapter.EndOfStreamAction;
-import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageReaderBuilder;
-import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
-import com.github.lhotari.reactive.pulsar.adapter.StartAtSpec;
-import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -13,9 +8,18 @@ import java.util.Base64;
 import java.util.Optional;
 import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.reactive.client.api.EndOfStreamAction;
+import org.apache.pulsar.reactive.client.api.ReactiveMessageReaderBuilder;
+import org.apache.pulsar.reactive.client.api.ReactivePulsarClient;
+import org.apache.pulsar.reactive.client.api.StartAtSpec;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -78,7 +82,7 @@ public class EventFireHoseController {
         return Flux.merge(
             messageReaderBuilder
                 .build()
-                .readMessages()
+                .readMany()
                 .map(telemetryEventMessage ->
                     ServerSentEvent
                         .builder(telemetryEventMessage.getValue())

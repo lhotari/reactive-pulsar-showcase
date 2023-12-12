@@ -1,19 +1,24 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
-import com.github.lhotari.reactive.pulsar.adapter.*;
-import com.github.lhotari.reactive.pulsar.resourceadapter.ReactiveProducerCache;
-import com.github.lhotari.reactive.pulsar.spring.AbstractReactiveMessageListenerContainer;
-import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pulsar.client.api.*;
+import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.SubscriptionInitialPosition;
+import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.reactive.client.api.MessageResult;
+import org.apache.pulsar.reactive.client.api.MessageSpec;
+import org.apache.pulsar.reactive.client.api.ReactiveMessageConsumerBuilder;
+import org.apache.pulsar.reactive.client.api.ReactiveMessagePipeline;
+import org.apache.pulsar.reactive.client.api.ReactiveMessageSender;
+import org.apache.pulsar.reactive.client.api.ReactiveMessageSenderCache;
+import org.apache.pulsar.reactive.client.api.ReactivePulsarClient;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @Component
@@ -32,7 +37,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
     @Autowired
     public TelemetryProcessor(
         ReactivePulsarClient reactivePulsarClient,
-        ReactiveProducerCache reactiveProducerCache,
+        ReactiveMessageSenderCache ReactiveMessageSenderCache,
         PulsarTopicNameResolver topicNameResolver
     ) {
         this.topicNameResolver = topicNameResolver;
@@ -42,23 +47,26 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
                 .messageSender(schema)
                 .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
                 .maxInflight(100)
-                .cache(reactiveProducerCache)
+                .cache(ReactiveMessageSenderCache)
                 .maxConcurrentSenderSubscriptions(10000)
                 .build();
         this.reactivePulsarClient = reactivePulsarClient;
     }
 
     @Override
-    protected ReactiveMessageHandler createReactiveMessageHandler() {
+    protected ReactiveMessagePipeline createReactiveMessagePipeline() {
         log.info("Starting to consume messages");
-        return ReactiveMessageHandlerBuilder
-            .builder(reactivePulsarClient.messageConsumer(schema).consumerConfigurer(this::configureConsumer).build())
+        return configureConsumer(reactivePulsarClient.messageConsumer(schema))
+            .build()
+            .messagePipeline()
             .streamingMessageHandler(this::consumeMessages)
             .build();
     }
 
-    private void configureConsumer(ConsumerBuilder<TelemetryEvent> consumerBuilder) {
-        consumerBuilder
+    private ReactiveMessageConsumerBuilder<TelemetryEvent> configureConsumer(
+        ReactiveMessageConsumerBuilder<TelemetryEvent> consumerBuilder
+    ) {
+        return consumerBuilder
             .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
             .subscriptionType(SubscriptionType.Key_Shared)
             .subscriptionName(getClass().getSimpleName())
@@ -86,7 +94,7 @@ public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer
         // taking the median entry in the window can help filter out outlier values
         double median = entriesForWindow.get(entriesForWindow.size() / 2).getValue().getV();
         TelemetryEvent medianEntry = TelemetryEvent.builder().n(n).v(median).build();
-        return messageSender.sendMessage(Mono.just(MessageSpec.builder(medianEntry).key(medianEntry.getN()).build()));
+        return messageSender.sendOne(MessageSpec.builder(medianEntry).key(medianEntry.getN()).build());
     }
 
     private static MessageResult<Void> acknowledgeMessage(Message<TelemetryEvent> telemetryEventMessage) {

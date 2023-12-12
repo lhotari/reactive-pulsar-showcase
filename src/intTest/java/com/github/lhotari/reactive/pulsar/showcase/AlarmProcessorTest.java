@@ -1,15 +1,13 @@
 package com.github.lhotari.reactive.pulsar.showcase;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.lhotari.reactive.pulsar.adapter.MessageSpec;
-import com.github.lhotari.reactive.pulsar.adapter.ReactiveMessageSender;
-import com.github.lhotari.reactive.pulsar.adapter.ReactivePulsarClient;
-import com.github.lhotari.reactive.pulsar.spring.PulsarTopicNameResolver;
-import com.github.lhotari.reactive.pulsar.spring.test.SingletonPulsarContainer;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
@@ -24,6 +22,9 @@ import java.util.concurrent.TimeUnit;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.reactive.client.api.MessageSpec;
+import org.apache.pulsar.reactive.client.api.ReactiveMessageSender;
+import org.apache.pulsar.reactive.client.api.ReactivePulsarClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -148,7 +149,7 @@ class AlarmProcessorTest {
 
         // when telemetry events are sent
         messageSender
-            .sendMessages(
+            .sendMany(
                 Flux
                     .just(1.0d, 2.0d, 81.0d, 120.0d, 66.0d, 75.0d, 73.0d, 82.0d)
                     .map(value -> new TelemetryEvent("device1/sensor1", value))
