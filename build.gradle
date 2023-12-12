@@ -35,8 +35,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation 'com.github.lhotari:reactive-pulsar-spring-boot-starter:0.2.1'
     testImplementation 'com.github.lhotari:reactive-pulsar-spring-test-support:0.2.1'
-    implementation 'org.apache.pulsar:pulsar-client:2.10.2'
-    implementation 'org.apache.pulsar:pulsar-client-admin:2.10.2'
+    implementation 'org.apache.pulsar:pulsar-client:3.0.2'
+    implementation 'org.apache.pulsar:pulsar-client-admin:3.0.2'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
@@ -59,8 +59,8 @@ configurations {
 configurations {
     all {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:2.10.2')
-            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:2.10.2')
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:3.0.2')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:3.0.2')
         }
     }
 }
@@ -82,6 +82,7 @@ tasks.register('integrationTest', Test) {
     classpath = sourceSets.intTest.runtimeClasspath
     shouldRunAfter test
     useJUnitPlatform()
+    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:3.0.2')
 }
 
 check.dependsOn integrationTest
