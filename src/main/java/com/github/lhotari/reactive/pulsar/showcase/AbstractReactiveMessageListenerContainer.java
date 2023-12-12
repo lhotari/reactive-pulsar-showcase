@@ -3,6 +3,9 @@ package com.github.lhotari.reactive.pulsar.showcase;
 import org.apache.pulsar.reactive.client.api.ReactiveMessagePipeline;
 import org.springframework.context.SmartLifecycle;
 
+/**
+ * Abstract base class for handling {@link ReactiveMessagePipeline} lifecycle with Spring.
+ */
 public abstract class AbstractReactiveMessageListenerContainer implements SmartLifecycle {
 
     private ReactiveMessagePipeline messagePipeline;
