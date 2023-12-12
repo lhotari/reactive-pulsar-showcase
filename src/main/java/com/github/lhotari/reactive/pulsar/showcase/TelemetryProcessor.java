@@ -23,7 +23,7 @@ import reactor.core.scheduler.Schedulers;
 
 @Component
 @Slf4j
-public class TelemetryProcessor extends AbstractReactiveMessageListenerContainer {
+public class TelemetryProcessor extends AbstractReactiveMessagePipelineContainer {
 
     public static final String TELEMETRY_MEDIAN_TOPIC_NAME = "telemetry_median";
     private static final int MAX_GROUPS_IN_FLIGHT = 5000;

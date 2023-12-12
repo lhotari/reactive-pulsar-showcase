@@ -21,7 +21,7 @@ import reactor.util.retry.Retry;
 
 @Component
 @Slf4j
-public class AlarmProcessor extends AbstractReactiveMessageListenerContainer {
+public class AlarmProcessor extends AbstractReactiveMessagePipelineContainer {
 
     public static final String ALARMPROCESSOR_DLQ_TOPIC_NAME = "alarmprocessor.dlq";
     public static final int MAX_CONCURRENCY = 32;

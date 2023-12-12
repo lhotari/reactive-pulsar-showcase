@@ -6,7 +6,7 @@ import org.springframework.context.SmartLifecycle;
 /**
  * Abstract base class for handling {@link ReactiveMessagePipeline} lifecycle with Spring.
  */
-public abstract class AbstractReactiveMessageListenerContainer implements SmartLifecycle {
+public abstract class AbstractReactiveMessagePipelineContainer implements SmartLifecycle {
 
     private ReactiveMessagePipeline messagePipeline;
 
