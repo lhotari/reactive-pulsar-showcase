@@ -4,6 +4,7 @@ plugins {
     id 'java'
     id 'project-report'
     id "com.github.ben-manes.versions" version "0.50.0"
+    id "com.diffplug.spotless" version "6.23.3"
 }
 
 group = 'com.github.lhotari'
@@ -11,6 +12,21 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     sourceCompatibility = '17'
+}
+
+spotless {
+    java {
+        removeUnusedImports()
+        prettier(['prettier': '3.0.3', 'prettier-plugin-java': '2.5.0'])
+                .config(['plugins'      : ['prettier-plugin-java'],
+                         'trailingComma': 'none',
+                         'useTabs'      : false,
+                         'tabWidth'     : 4,
+                         'semi'         : true,
+                         'singleQuote'  : false,
+                         'printWidth'   : 120,
+                         'arrowParens'  : 'avoid'])
+    }
 }
 
 configurations {
