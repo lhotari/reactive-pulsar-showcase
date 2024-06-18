@@ -1,9 +1,9 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '3.3.0'
+    id 'io.spring.dependency-management' version '1.1.5'
     id 'java'
     id 'project-report'
-    id "com.github.ben-manes.versions" version "0.50.0"
+    id "com.github.ben-manes.versions" version "0.51.0"
     id "com.diffplug.spotless" version "6.23.3"
 }
 
@@ -73,8 +73,8 @@ configurations {
 configurations {
     all {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:3.1.1')
-            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:3.1.1')
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:3.2.3')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:3.2.3')
         }
     }
 }
@@ -96,7 +96,7 @@ tasks.register('integrationTest', Test) {
     classpath = sourceSets.intTest.runtimeClasspath
     shouldRunAfter test
     useJUnitPlatform()
-    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:3.1.1')
+    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:3.2.3')
 }
 
 check.dependsOn integrationTest
