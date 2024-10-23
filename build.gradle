@@ -73,8 +73,8 @@ configurations {
 configurations {
     all {
         resolutionStrategy.dependencySubstitution {
-            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:3.2.3')
-            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:3.2.3')
+            substitute module('org.apache.pulsar:pulsar-client') using module('org.apache.pulsar:pulsar-client-original:4.0.0')
+            substitute module('org.apache.pulsar:pulsar-client-admin') using module('org.apache.pulsar:pulsar-client-admin-original:4.0.0')
         }
     }
 }
@@ -96,7 +96,7 @@ tasks.register('integrationTest', Test) {
     classpath = sourceSets.intTest.runtimeClasspath
     shouldRunAfter test
     useJUnitPlatform()
-    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:3.2.3')
+    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:4.0.0')
 }
 
 check.dependsOn integrationTest

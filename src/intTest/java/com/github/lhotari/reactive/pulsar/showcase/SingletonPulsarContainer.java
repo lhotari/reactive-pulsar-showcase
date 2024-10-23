@@ -42,7 +42,7 @@ public class SingletonPulsarContainer {
 
     private static final String PULSAR_CONTAINER_IMAGE = System
         .getenv()
-        .getOrDefault("PULSAR_CONTAINER_IMAGE", "apachepulsar/pulsar:3.2.3");
+        .getOrDefault("PULSAR_CONTAINER_IMAGE", "apachepulsar/pulsar:4.0.0");
     public static SingletonPulsarContainer INSTANCE = new SingletonPulsarContainer();
 
     private final PulsarContainer pulsarContainer = new PulsarContainer(
