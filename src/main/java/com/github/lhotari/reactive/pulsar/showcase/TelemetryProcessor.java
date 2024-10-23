@@ -42,14 +42,13 @@ public class TelemetryProcessor extends AbstractReactiveMessagePipelineContainer
     ) {
         this.topicNameResolver = topicNameResolver;
         schema = Schema.JSON(TelemetryEvent.class);
-        this.messageSender =
-            reactivePulsarClient
-                .messageSender(schema)
-                .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
-                .maxInflight(100)
-                .cache(reactiveMessageSenderCache)
-                .maxConcurrentSenderSubscriptions(10000)
-                .build();
+        this.messageSender = reactivePulsarClient
+            .messageSender(schema)
+            .topic(topicNameResolver.resolveTopicName(TELEMETRY_MEDIAN_TOPIC_NAME))
+            .maxInflight(100)
+            .cache(reactiveMessageSenderCache)
+            .maxConcurrentSenderSubscriptions(10000)
+            .build();
         this.reactivePulsarClient = reactivePulsarClient;
     }
 

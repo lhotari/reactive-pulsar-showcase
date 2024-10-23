@@ -34,12 +34,11 @@ public class EventFireHoseController {
         PulsarTopicNameResolver topicNameResolver
     ) {
         this.topicNameResolver = topicNameResolver;
-        messageReaderBuilderTemplate =
-            reactivePulsarClient
-                .messageReader(Schema.JSON(TelemetryEvent.class))
-                .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
-                .startAtSpec(StartAtSpec.ofLatestInclusive())
-                .endOfStreamAction(EndOfStreamAction.POLL);
+        messageReaderBuilderTemplate = reactivePulsarClient
+            .messageReader(Schema.JSON(TelemetryEvent.class))
+            .topic(topicNameResolver.resolveTopicName(IngestController.TELEMETRY_INGEST_TOPIC_NAME))
+            .startAtSpec(StartAtSpec.ofLatestInclusive())
+            .endOfStreamAction(EndOfStreamAction.POLL);
     }
 
     @CrossOrigin(allowedHeaders = "*")
@@ -84,8 +83,7 @@ public class EventFireHoseController {
                 .build()
                 .readMany()
                 .map(telemetryEventMessage ->
-                    ServerSentEvent
-                        .builder(telemetryEventMessage.getValue())
+                    ServerSentEvent.builder(telemetryEventMessage.getValue())
                         .event("telemetry")
                         .id(Base64.getUrlEncoder().encodeToString(telemetryEventMessage.getMessageId().toByteArray()))
                         .build()
@@ -95,8 +93,7 @@ public class EventFireHoseController {
     }
 
     private Flux<ServerSentEvent<TelemetryEvent>> createKeepaliveFlux() {
-        return Flux
-            .interval(KEEPALIVE_INTERVAL)
-            .map(i -> ServerSentEvent.<TelemetryEvent>builder().comment("").build());
+        return Flux.interval(KEEPALIVE_INTERVAL).map(i -> ServerSentEvent.<TelemetryEvent>builder().comment("").build()
+        );
     }
 }

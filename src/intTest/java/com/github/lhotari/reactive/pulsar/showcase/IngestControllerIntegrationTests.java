@@ -65,12 +65,14 @@ class IngestControllerIntegrationTests {
             .as(StepVerifier::create)
             .expectSubscription()
             .assertNext(telemetryEventMessage ->
-                assertThat(telemetryEventMessage.getValue())
-                    .isEqualTo(TelemetryEvent.builder().n("device1").v(1.23).build())
+                assertThat(telemetryEventMessage.getValue()).isEqualTo(
+                    TelemetryEvent.builder().n("device1").v(1.23).build()
+                )
             )
             .assertNext(telemetryEventMessage ->
-                assertThat(telemetryEventMessage.getValue())
-                    .isEqualTo(TelemetryEvent.builder().n("device2").v(3.21).build())
+                assertThat(telemetryEventMessage.getValue()).isEqualTo(
+                    TelemetryEvent.builder().n("device2").v(3.21).build()
+                )
             )
             .thenCancel()
             .verify(Duration.ofSeconds(5));

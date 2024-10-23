@@ -76,8 +76,7 @@ public class AlarmProcessor extends AbstractReactiveMessagePipelineContainer {
             .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
             .negativeAckRedeliveryDelay(Duration.ofSeconds(10))
             .deadLetterPolicy(
-                DeadLetterPolicy
-                    .builder()
+                DeadLetterPolicy.builder()
                     .deadLetterTopic(topicNameResolver.resolveTopicName(ALARMPROCESSOR_DLQ_TOPIC_NAME))
                     .maxRedeliverCount(3)
                     .build()
@@ -110,7 +109,7 @@ public class AlarmProcessor extends AbstractReactiveMessagePipelineContainer {
             (lastSent != null &&
                 lastSent.messageId.compareTo(telemetryEventMessage.getMessageId()) < 0 &&
                 ALARM_THRESHOLD.compareTo(lastSent.getTelemetryEvent().getV()) !=
-                    ALARM_THRESHOLD.compareTo(telemetryEvent.getV()))
+                ALARM_THRESHOLD.compareTo(telemetryEvent.getV()))
         );
     }
 

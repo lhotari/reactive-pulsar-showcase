@@ -61,13 +61,12 @@ class TeleMetryProcessorIntegrationTests {
         // 100 values for 100 devices are sent to the ingest topic
         messageSender
             .sendMany(
-                Flux
-                    .range(1, DEVICE_COUNT)
+                Flux.range(1, DEVICE_COUNT)
                     .flatMap(value -> {
                         String name = "device" + value + "/sensor1";
-                        return Flux
-                            .range(1, 100)
-                            .map(entryCounter -> TelemetryEvent.builder().n(name).v(entryCounter).build());
+                        return Flux.range(1, 100).map(entryCounter ->
+                            TelemetryEvent.builder().n(name).v(entryCounter).build()
+                        );
                     })
                     .map(telemetryEvent -> MessageSpec.builder(telemetryEvent).key(telemetryEvent.getN()).build())
             )
