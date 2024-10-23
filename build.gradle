@@ -48,12 +48,9 @@ sourceSets {
 
 def pulsarVersion = '4.0.0'
 
-// when using io.spring.dependency-management plugin, the bom must be declared in the dependencyManagement section
-dependencyManagement {
-     imports {
-          mavenBom "org.apache.pulsar:pulsar-bom:${pulsarVersion}"
-     }
-}
+// when using Spring Boot with io.spring.dependency-management plugin, this is the way to change the Pulsar Java client version
+// See https://docs.spring.io/spring-boot/appendix/dependency-versions/properties.html
+ext['pulsar.version'] = pulsarVersion
 
 dependencies {
     // this would be used if io.spring.dependency-management plugin wasn't used
@@ -97,7 +94,7 @@ tasks.register('integrationTest', Test) {
     classpath = sourceSets.intTest.runtimeClasspath
     shouldRunAfter test
     useJUnitPlatform()
-    environment('PULSAR_CONTAINER_IMAGE', 'apachepulsar/pulsar:4.0.0')
+    environment('PULSAR_CONTAINER_IMAGE', "apachepulsar/pulsar:${pulsarVersion}")
 }
 
 check.dependsOn integrationTest
