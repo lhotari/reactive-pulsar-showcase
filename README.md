@@ -8,7 +8,7 @@ This application was originally written as a demonstration of [Reactive Pulsar](
 
 Starting Pulsar standalone
 ```bash
-docker run --name pulsar-standalone -d -p 8080:8080 -p 6650:6650 apachepulsar/pulsar:4.0.0 /pulsar/bin/pulsar standalone -nss -nfw
+docker run --name pulsar-standalone -d -p 8080:8080 -p 6650:6650 apachepulsar/pulsar:4.0.1 /pulsar/bin/pulsar standalone -nss -nfw
 ```
 
 Tailing logs

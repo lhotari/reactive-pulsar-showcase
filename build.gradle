@@ -46,7 +46,7 @@ sourceSets {
     }
 }
 
-def pulsarVersion = '4.0.0'
+def pulsarVersion = '4.0.1'
 
 // when using Spring Boot with io.spring.dependency-management plugin, this is the way to change the Pulsar Java client version
 // See https://docs.spring.io/spring-boot/appendix/dependency-versions/properties.html
